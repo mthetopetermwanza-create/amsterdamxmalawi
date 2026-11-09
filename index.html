@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kush & Co. Amsterdam — Malawi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #030202; color: #f5e9d8;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    overflow: hidden; height: 100dvh;
+    display: flex; justify-content: center; align-items: center;
+    user-select: none;
+  }
+
+  #game-container {
+    position: relative; width: 100%; height: 100%;
+    max-width: 1100px; max-height: 780px;
+    background: #e8dfcc; 
+    overflow: hidden;
+    box-shadow: 0 0 150px rgba(0,0,0,1);
+    border: 1px solid #33261c;
+  }
+
+  /* ========== SCENE & LIGHTING ========== */
+  .scene { position: absolute; inset: 0; }
+
+  .wall {
+    position: absolute; top: 0; left: 0; right: 0; height: 65%;
+    background: linear-gradient(180deg, #f5e9d8 0%, #d4c5af 100%);
+    border-bottom: 4px solid #2a1a10;
+    background-image: 
+      radial-gradient(ellipse at 50% 20%, rgba(255, 200, 100, 0.15) 0%, transparent 60%),
+      radial-gradient(circle at 10% 40%, rgba(0, 0, 0, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 90% 40%, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+  }
+
+  .floor {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+    background: repeating-linear-gradient(
+      90deg, #1a0f08 0px, #1a0f08 40px, #140b05 40px, #140b05 80px
+    );
+    border-top: 4px solid #0a0502;
+  }
+
+  /* Ambient Smoke */
+  .smoke-container {
+    position: absolute; inset: 0; pointer-events: none; z-index: 18;
+    overflow: hidden;
+  }
+  .smoke-particle {
+    position: absolute;
+    background: rgba(212, 175, 122, 0.15);
+    border-radius: 50%;
+    filter: blur(10px);
+    animation: floatSmoke 8s infinite ease-in-out;
+  }
+  .smoke-1 { width: 60px; height: 60px; left: 20%; bottom: 35%; animation-delay: 0s; }
+  .smoke-2 { width: 80px; height: 80px; left: 50%; bottom: 30%; animation-delay: 2s; }
+  .smoke-3 { width: 50px; height: 50px; left: 80%; bottom: 38%; animation-delay: 4s; }
+
+  @keyframes floatSmoke {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    20% { opacity: 0.6; }
+    100% { transform: translateY(-150px) scale(2); opacity: 0; }
+  }
+
+  /* ========== THE PREMIUM COUNTER ========== */
+  .counter {
+    position: absolute; 
+    bottom: 0; left: 6%; right: 6%; height: 42%; 
+    background: linear-gradient(180deg, #1c1714 0%, #050302 100%);
+    border-top: 4px solid #3a2a1c; 
+    border-radius: 4px 4px 0 0;
+    box-shadow: 0 -30px 60px rgba(0,0,0,0.9), inset 0 2px 0 rgba(255,255,255,0.05);
+    z-index: 20; overflow: hidden;
+  }
+
+  .counter::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af7a, transparent);
+    opacity: 0.6;
+  }
+
+  .counter-plate {
+    position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+    width: 260px; height: 55px;
+    background: rgba(10, 8, 6, 0.85);
+    border: 1px solid rgba(212, 175, 122, 0.4);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.9), inset 0 0 20px rgba(212, 175, 122, 0.1);
+    color: #f0d5a8; font-family: 'Cinzel', serif;
+    font-size: 24px; font-weight: 700; letter-spacing: 8px;
+    text-shadow: 0 0 10px rgba(212, 175, 122, 0.5);
+    backdrop-filter: blur(5px);
+  }
+
+  .counter-welcome-area {
+    position: absolute; top: 42%; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 18px; white-space: nowrap;
+  }
+
+  .counter-welcome {
+    color: #d4af7a; font-family: 'Montserrat', sans-serif;
+    font-size: 13px; letter-spacing: 6px; text-transform: uppercase;
+    font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+  }
+
+  .counter-promo {
+    position: absolute; top: 55%; left: 50%; transform: translateX(-50%);
+    color: rgba(212, 175, 122, 0.7); font-family: 'Montserrat', sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 500; text-align: center; line-height: 1.6;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+    width: 90%;
+  }
+
+  .c-flag {
+    width: 38px; height: 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+    position: relative; border-radius: 2px;
+    opacity: 0.9;
+  }
+  .c-flag.ams { background: linear-gradient(180deg, #b22222 33.3%, #f5f5f5 33.3%, #f5f5f5 66.6%, #2a2a2a 66.6%); }
+  .c-flag.ams::before, .c-flag.ams::after { content: ''; position: absolute; background: #2a2a2a; }
+  .c-flag.ams::before { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 2px; }
+  .c-flag.ams::after { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 6px; }
+  .c-flag.mw { background: linear-gradient(180deg, #1a1a1a 33.3%, #b22222 33.3%, #b22222 66.6%, #2e8b57 66.6%); }
+  .c-flag.mw::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 12px; height: 6px; background: #ffaa00; border-radius: 12px 12px 0 0; }
+
+  /* ========== CHARACTERS (NO LIMBS) ========== */
+  .character {
+    position: absolute; bottom: 30%; 
+    width: 140px; height: 320px;
+    z-index: 15; cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .character:hover { transform: scale(1.03) translateY(-5px); }
+  .character.jaxy  { left: 28%; }
+  .character.muthe { right: 28%; }
+
+  .char-body {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 190px; 
+    border-radius: 40px 40px 0 0;
+    background: #1e3328; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 -30px 30px rgba(0,0,0,0.4);
+    z-index: 2;
+  }
+  .muthe .char-body { background: #2a1a24; }
+
+  .char-head {
+    position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
+    width: 56px; height: 56px; background: #a0724e; 
+    border-radius: 50%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    z-index: 3;
+  }
+
+  .jaxy .char-hair {
+    position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+    width: 62px; height: 32px; background: #1a1008; border-radius: 28px 28px 0 0;
+  }
+
+  .jaxy .char-beard {
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    width: 44px; height: 22px; background: #1a1008;
+    border-radius: 0 0 20px 20px; z-index: 1;
+  }
+  .jaxy .char-beard::before {
+    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 10px; background: #a0724e; border-radius: 0 0 10px 10px;
+  }
+
+  .muthe .char-hair { display: none; } 
+  .muthe .snapback {
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    width: 64px; height: 26px; z-index: 6;
+  }
+  .muthe .snapback-cap {
+    position: absolute; top: 0; left: 0;
+    width: 64px; height: 24px; background: #111;
+    border-radius: 20px 20px 4px 4px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+  }
+  .muthe .snapback-brim {
+    position: absolute; top: 14px; left: -8px;
+    width: 32px; height: 10px; background: #0a0a0a;
+    border-radius: 4px 16px 16px 4px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.8);
+    transform: rotate(-6deg);
+  }
+  .muthe .snapback-logo {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 16px; background: #d4af7a;
+    border-radius: 50%; border: 2px solid #111;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+  }
+
+  .char-eyes {
+    position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+    width: 28px; height: 6px; display: flex; justify-content: space-between;
+    z-index: 4;
+  }
+  .char-eyes::before, .char-eyes::after {
+    content: ''; width: 6px; height: 6px; background: #000; border-radius: 50%;
+    animation: blink 6s infinite;
+  }
+  .muthe .char-eyes::before, .muthe .char-eyes::after { animation-delay: 3s; }
+
+  @keyframes blink {
+    0%, 94%, 100% { transform: scaleY(1); }
+    97% { transform: scaleY(0.1); }
+  }
+
+  .char-smile {
+    position: absolute; top: 36px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 6px; border-bottom: 2px solid #5a2a2a;
+    border-radius: 0 0 10px 10px;
+    z-index: 4;
+  }
+
+  .char-nametag {
+    position: absolute; bottom: 135px; left: 6px;
+    background: rgba(10, 8, 6, 0.9); color: #d4af7a;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 7px; font-weight: 700; 
+    padding: 2px 6px;
+    border: 1px solid rgba(212, 175, 122, 0.5);
+    border-radius: 3px; letter-spacing: 1px;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    z-index: 5;
+    transform: rotate(-2deg);
+  }
+
+  .speech-bubble {
+    position: absolute; top: -15px; left: 50%;
+    transform: translateX(-50%) scale(0.85);
+    background: rgba(255, 255, 255, 0.95); color: #1a0f08;
+    padding: 10px 14px; border-radius: 12px;
+    font-size: 10px; font-weight: 600;
+    text-align: center; line-height: 1.4;
+    width: max-content; max-width: 150px;
+    opacity: 0; transition: opacity 0.4s, transform 0.4s;
+    pointer-events: none; z-index: 30;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  }
+  .speech-bubble::after {
+    content: ''; position: absolute; bottom: -6px; left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
+  }
+  .speech-bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+  /* ========== WALL ART ========== */
+  .art-neon {
+    position: absolute; top: 16%; right: 7%;
+    width: 80px; height: 105px;
+    border: 4px solid #c9a24a; background: #0a0502;
+    z-index: 4; box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .art-neon .text-420 {
+    font-family: 'Playfair Display', serif; font-size: 32px; font-style: italic; font-weight: 700;
+    color: #88cc55; text-shadow: 0 0 14px #88cc55, 0 0 28px #88cc55;
+    animation: neonPulseGreen 2s infinite alternate;
+  }
+  .art-neon .leaf { width: 28px; height: 14px; background: #d4af7a; border-radius: 50% 0 50% 0; opacity: 0.7; margin-top: 8px; transform: rotate(-15deg); }
+
+  @keyframes neonPulseGreen {
+    from { opacity: 0.7; text-shadow: 0 0 6px #88cc55, 0 0 12px #88cc55; }
+    to   { opacity: 1;   text-shadow: 0 0 16px #88cc55, 0 0 28px #88cc55; }
+  }
+
+  .raw-art {
+    position: absolute; top: 22%; left: 7%;
+    width: 42px; height: 120px;
+    background: #e3d0b1; border: 2px solid #8a6a30; border-radius: 2px;
+    z-index: 4; transform: rotate(-3deg); box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .raw-art .raw-text { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #ba2014; transform: rotate(-90deg); letter-spacing: 2px; }
+  .raw-art .raw-classic { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 7.5px; color: #1a1a1a; font-weight: 700; background: #f5e9d8; padding: 2px 0; }
+  .raw-art .raw-logo { position: absolute; top: 9px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #1a1a1a; background: #ba2014; }
+
+  .ocb-art {
+    position: absolute; top: 20%; right: 32%;
+    width: 66px; height: 94px;
+    background: #111; border: 3px solid #c0c0c0; border-radius: 3px;
+    z-index: 4; transform: rotate(3.5deg); box-shadow: 0 14px 28px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .ocb-art .ocb-text { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #c0c0c0; letter-spacing: 2px; }
+  .ocb-art .ocb-slim { font-size: 9px; color: #8a7a5c; letter-spacing: 1.5px; margin-top: 4px; }
+  .ocb-art .ocb-box-top { position: absolute; top: 0; left: 0; right: 0; height: 18px; background: linear-gradient(180deg, #2a2a2a, #111); border-bottom: 1px solid #555; }
+  .ocb-art .ocb-box-line { position: absolute; bottom: 9px; left: 9px; right: 9px; height: 1px; background: #555; }
+
+  /* ========== PLANT SHELF ========== */
+  .plant-shelf {
+    position: absolute; top: 40%; left: 18%;
+    width: 115px; height: 11px;
+    background: #2c1b10; border-bottom: 3px solid #1a0f08;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.5); z-index: 5;
+  }
+  .ganja-plant { position: absolute; bottom: 11px; width: 48px; height: 65px; z-index: 6; transform-origin: bottom center; animation: sway 6s infinite ease-in-out; }
+  .ganja-plant.p1 { left: 8px; animation-delay: 0s; }
+  .ganja-plant.p2 { right: 8px; animation-delay: 1.8s; }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(2.5deg); }
+  }
+
+  .plant-pot {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 20px; background: #8a4a3a;
+    border-radius: 0 0 5px 5px; box-shadow: inset 0 -4px 8px rgba(0,0,0,0.45);
+  }
+  .plant-pot::before { content: ''; position: absolute; top: -3px; left: 0; right: 0; height: 4px; background: #a05a4a; border-radius: 2px; }
+  .plant-leaf {
+    position: absolute; width: 22px; height: 22px; background: #3a7a3a;
+    clip-path: polygon(50% 0%, 60% 20%, 75% 15%, 80% 35%, 95% 30%, 90% 50%, 100% 60%, 85% 70%, 90% 85%, 70% 80%, 60% 100%, 50% 80%, 40% 100%, 30% 80%, 10% 85%, 15% 70%, 0% 60%, 10% 50%, 5% 30%, 20% 35%, 25% 15%, 40% 20%);
+    box-shadow: 0 0 8px rgba(58,122,58,0.5);
+  }
+  .plant-leaf.l1 { bottom: 14px; left: -1px; transform: rotate(-20deg) scale(1.05); }
+  .plant-leaf.l2 { bottom: 18px; right: -1px; transform: rotate(20deg) scale(1.05); }
+  .plant-leaf.l3 { bottom: 28px; left: 50%; transform: translateX(-50%) scale(1.25); }
+  .plant-leaf.l4 { bottom: 22px; left: 9px; transform: rotate(-42deg) scale(0.8); }
+  .plant-leaf.l5 { bottom: 22px; right: 9px; transform: rotate(42deg) scale(0.8); }
+
+  /* ========== PREMIUM JARS ========== */
+  .item {
+    position: absolute; bottom: 43%; width: 40px; height: 50px;
+    z-index: 25; cursor: pointer;
+    transition: transform 0.3s, filter 0.3s;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .item:hover { transform: scale(1.15) translateY(-8px); filter: drop-shadow(0 0 15px rgba(212, 175, 122, 0.6)); }
+
+  .display-jar {
+    width: 28px; height: 38px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.15);
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .display-jar::after {
+    content: ''; position: absolute; top: -4px; left: 1px; right: 1px;
+    height: 4px; background: linear-gradient(180deg, #ffd89b, #8a6a30);
+    border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .display-jar::before {
+    content: ''; position: absolute; inset: 4px;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 70%);
+  }
+
+  .jar-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 8px; font-weight: 700;
+    color: #f5e9d8; text-transform: uppercase;
+    background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 2px;
+    letter-spacing: 1px; z-index: 2;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .item-sativa { left: 18%; }
+  .item-sativa .display-jar { box-shadow: inset 0 0 15px #88cc55, 0 0 20px rgba(136, 204, 85, 0.3); }
+  
+  .item-indica { left: 30%; }
+  .item-indica .display-jar { box-shadow: inset 0 0 15px #cc5588, 0 0 20px rgba(204, 85, 136, 0.3); }
+
+  .item-hybrid { left: 42%; }
+  .item-hybrid .display-jar { box-shadow: inset 0 0 15px #55cc88, 0 0 20px rgba(85, 204, 136, 0.3); }
+
+  .menu-card {
+    position: absolute; bottom: 40%; right: 15%;
+    width: 44px; height: 66px;
+    background: #f4ede1; border: 1px solid #8a6a30;
+    border-radius: 2px; z-index: 25; cursor: pointer;
+    transform: rotate(4deg); transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    animation: floatCard 4s infinite ease-in-out;
+  }
+  .menu-card:hover { transform: rotate(0deg) scale(1.1); box-shadow: 0 0 25px rgba(212, 175, 122, 0.5); }
+  .menu-card::before { content: 'MENU'; position: absolute; top: 10px; left: 0; right: 0; text-align: center; font-size: 9px; font-weight: 700; color: #2a1a10; letter-spacing: 2px; }
+
+  @keyframes floatCard {
+    0%, 100% { transform: translateY(0) rotate(4deg); }
+    50% { transform: translateY(-8px) rotate(4deg); }
+  }
+
+  /* ========== UI OVERLAYS ========== */
+  .hud { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+
+  .brand {
+    position: absolute; top: 20px; left: 25px;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(18px, 4vw, 24px); letter-spacing: 4px; color: #1a0f08;
+  }
+  .brand small { display: block; font-family: 'Montserrat', sans-serif; font-size: 9px; letter-spacing: 3px; color: #5a4a3a; margin-top: 4px; font-weight: 500; }
+  .brand .malawi { color: #b35a1a; font-size: 10px; margin-top: 3px; letter-spacing: 1.5px; }
+
+  .cart-btn {
+    position: absolute; top: 20px; right: 120px;
+    background: rgba(26,15,8,0.85); border: 1px solid rgba(212,175,122,0.5);
+    color: #d4af7a; padding: 8px 16px; border-radius: 3px;
+    font-size: 11px; letter-spacing: 1.5px; cursor: pointer;
+    pointer-events: auto; display: flex; align-items: center; gap: 8px;
+    transition: all 0.3s; font-weight: 500;
+  }
+  .cart-btn:hover { background: rgba(26,15,8,1); border-color: #d4af7a; }
+  .cart-count { background: #d4af7a; color: #0a0502; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; }
+
+  .status { position: absolute; top: 24px; right: 25px; font-size: 10px; letter-spacing: 2px; color: #5a4a3a; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+  .status .dot { width: 6px; height: 6px; background: #3a9a4a; border-radius: 50%; box-shadow: 0 0 10px #3a9a4a; animation: pulse 2s infinite; }
+
+  #dialogue-box {
+    position: absolute; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(30px);
+    width: min(92%, 760px);
+    background: rgba(10, 8, 6, 0.98);
+    border: 1px solid rgba(212, 175, 122, 0.3);
+    padding: 25px 30px; opacity: 0; pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.9); border-radius: 6px;
+  }
+  #dialogue-box.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+
+  #speaker { font-size: 11px; letter-spacing: 4px; color: #d4af7a; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; font-family: 'Cinzel', serif; }
+  #speech { font-family: 'Montserrat', sans-serif; font-size: clamp(15px, 3.5vw, 17px); line-height: 1.6; color: #e5e5e5; min-height: 50px; font-weight: 300; }
+  #choices { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+
+  .choice {
+    padding: 14px 18px; background: rgba(212, 175, 122, 0.05);
+    border: 1px solid rgba(212, 175, 122, 0.15); color: #e5e5e5;
+    font-size: 13px; letter-spacing: 0.5px; cursor: pointer;
+    transition: all 0.3s; text-align: left; border-radius: 3px;
+    font-weight: 400;
+  }
+  .choice:hover { background: rgba(212, 175, 122, 0.15); border-color: #d4af7a; padding-left: 25px; }
+  .choice .key { color: #d4af7a; margin-right: 12px; font-weight: 700; }
+
+  #menu-modal, #cart-modal {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: min(95%, 900px); max-height: 85dvh;
+    background: rgba(8, 5, 3, 0.98);
+    border: 1px solid rgba(212, 175, 122, 0.3);
+    padding: 35px 30px; opacity: 0; pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    overflow-y: auto; z-index: 50; border-radius: 8px;
+    box-shadow: 0 0 120px rgba(0,0,0,0.95);
+    backdrop-filter: blur(25px);
+  }
+  #menu-modal.show, #cart-modal.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+
+  #menu-modal h2, #cart-modal h2 { font-family: 'Cinzel', serif; font-size: clamp(24px, 5vw, 32px); letter-spacing: 4px; color: #d4af7a; margin-bottom: 4px; font-weight: 600; }
+  #menu-modal .sub, #cart-modal .sub { font-size: 11px; letter-spacing: 2px; color: #7a6a50; text-transform: uppercase; margin-bottom: 30px; font-weight: 500; }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .strain-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(212, 175, 122, 0.1);
+    border-radius: 6px;
+    padding: 16px;
+    transition: transform 0.3s, border-color 0.3s, background 0.3s;
+  }
+  .strain-card:hover { transform: translateY(-4px); border-color: rgba(212, 175, 122, 0.4); background: rgba(255,255,255,0.04); }
+
+  .bud-image {
+    height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+  }
+  .bud {
+    width: 50px; height: 50px;
+    border-radius: 50% 50% 45% 45%;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  }
+  .bud::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 60%); border-radius: inherit; }
+  
+  .bud.golden  { background: radial-gradient(circle at 30% 30%, #e8c878, #b38b4d); box-shadow: 0 0 20px rgba(212,175,122,0.3); }
+  .bud.diesel  { background: radial-gradient(circle at 30% 30%, #88aa66, #4a6a3a); box-shadow: 0 0 20px rgba(100,140,80,0.3); }
+  .bud.lake    { background: radial-gradient(circle at 30% 30%, #66aacc, #3a6a8a); box-shadow: 0 0 20px rgba(80,140,180,0.3); }
+  .bud.velvet  { background: radial-gradient(circle at 30% 30%, #aa6688, #6a3a5a); box-shadow: 0 0 20px rgba(160,80,120,0.3); }
+  .bud.zomba   { background: radial-gradient(circle at 30% 30%, #88cc66, #4a8a3a); box-shadow: 0 0 20px rgba(100,180,80,0.3); }
+  .bud.green   { background: radial-gradient(circle at 30% 30%, #66cc88, #3a8a5a); box-shadow: 0 0 20px rgba(80,180,120,0.3); }
+  .bud.gelato  { background: radial-gradient(circle at 30% 30%, #cc88aa, #8a4a6a); box-shadow: 0 0 20px rgba(180,100,140,0.3); }
+  .bud.purple  { background: radial-gradient(circle at 30% 30%, #9966cc, #5a3a8a); box-shadow: 0 0 20px rgba(140,80,200,0.3); }
+  .bud.citrus  { background: radial-gradient(circle at 30% 30%, #e8c866, #b38b3a); box-shadow: 0 0 20px rgba(220,180,80,0.3); }
+
+  .strain-info .type { font-size: 9px; letter-spacing: 2px; color: #8a7a5c; text-transform: uppercase; margin-bottom: 4px; font-weight: 500; }
+  .strain-info h3 { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 400; margin-bottom: 6px; color: #e5e5e5; }
+  .strain-info p { font-size: 12px; color: #a89880; line-height: 1.5; margin-bottom: 14px; font-style: italic; }
+
+  .strain-action { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(212,175,122,0.1); padding-top: 12px; }
+  .strain-price { font-size: 15px; color: #d4af7a; font-weight: 600; }
+  .stock-badge { font-size: 9px; color: #cc5588; letter-spacing: 1px; display: block; margin-top: 2px; font-weight: 600; }
+  .stock-badge.in-stock { color: #55cc88; }
+
+  .btn-buy { background: transparent; border: 1px solid #d4af7a; color: #d4af7a; padding: 8px 16px; cursor: pointer; transition: all 0.3s; font-size: 11px; letter-spacing: 1px; border-radius: 2px; font-weight: 500; }
+  .btn-buy:hover:not(:disabled) { background: #d4af7a; color: #0a0502; }
+  .btn-buy:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #close-menu, #close-cart { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #d4af7a; font-size: 22px; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s; }
+  #close-menu:hover, #close-cart:hover { background: rgba(212,175,122,0.15); }
+
+  .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(212,175,122,0.1); font-size: 14px; font-weight: 300; }
+  .cart-total { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(212,175,122,0.25); font-size: 18px; color: #d4af7a; font-weight: 600; }
+  
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 10px; letter-spacing: 1.5px; color: #8a7a5c; margin-bottom: 6px; text-transform: uppercase; font-weight: 500; }
+  .form-group input, .form-group select { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,122,0.2); color: #e5e5e5; padding: 12px 14px; border-radius: 3px; font-size: 14px; outline: none; font-family: 'Montserrat', sans-serif; }
+  .form-group input:focus, .form-group select:focus { border-color: #d4af7a; background: rgba(255,255,255,0.05); }
+
+  .btn-checkout { width: 100%; margin-top: 20px; background: #d4af7a; color: #0a0502; border: none; padding: 16px; font-size: 13px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: background 0.3s; text-transform: uppercase; }
+  .btn-checkout:hover { background: #e8c88a; }
+
+  #toast { position: absolute; top: 80px; left: 50%; transform: translateX(-50%) translateY(-14px); background: rgba(10,8,6,0.98); border: 1px solid #d4af7a; padding: 14px 24px; font-size: 11px; letter-spacing: 2px; color: #ffd89b; opacity: 0; transition: all 0.4s; pointer-events: none; text-transform: uppercase; z-index: 60; border-radius: 3px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  @media (max-width: 680px) {
+    .character { width: 110px; height: 260px; bottom: 30%; }
+    .character.jaxy  { left: 16%; }
+    .character.muthe { right: 16%; }
+    .char-body { width: 64px; height: 150px; }
+    .char-head { width: 46px; height: 46px; bottom: 140px; }
+    .char-nametag { bottom: 100px; font-size: 6px; padding: 1px 4px; left: 4px; }
+    .muthe .snapback { width: 54px; top: -20px; }
+    .muthe .snapback-cap { width: 54px; height: 20px; }
+    .muthe .snapback-brim { width: 26px; left: -6px; top: 12px; }
+    .muthe .snapback-logo { width: 12px; height: 12px; top: 4px; }
+    
+    .item { bottom: 42%; width: 34px; }
+    .item-sativa { left: 12%; }
+    .item-indica { left: 26%; }
+    .item-hybrid { left: 40%; }
+    .menu-card { right: 10%; bottom: 39%; width: 40px; height: 60px; }
+    
+    .art-neon { top: 16%; right: 4%; width: 60px; height: 80px; }
+    .art-neon .text-420 { font-size: 24px; }
+    .raw-art { top: 22%; left: 4%; width: 34px; height: 100px; }
+    .raw-art .raw-text { font-size: 20px; }
+    .ocb-art { top: 20%; right: 28%; width: 54px; height: 78px; }
+    .ocb-art .ocb-text { font-size: 18px; }
+    
+    .plant-shelf { left: 16%; width: 90px; top: 38%; }
+    .ganja-plant { transform: scale(0.8); }
+    .ganja-plant.p1 { left: 5px; }
+    .ganja-plant.p2 { right: 5px; }
+
+    .counter-plate { width: 180px; font-size: 16px; height: 40px; top: 8%; letter-spacing: 4px; }
+    .counter-welcome-area { top: 38%; gap: 8px; }
+    .counter-welcome { font-size: 9px; letter-spacing: 2px; }
+    .counter-promo { top: 50%; font-size: 8px; }
+    .c-flag { width: 25px; height: 16px; }
+
+    #dialogue-box { padding: 20px; bottom: 16px; }
+    #menu-modal, #cart-modal { padding: 25px 18px; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .cart-btn { top: 80px; right: 20px; }
+    
+    .strain-card { flex-direction: row; align-items: stretch; }
+    .bud-image { width: 80px; height: auto; margin-bottom: 0; }
+    .bud { width: 40px; height: 40px; }
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <div class="scene">
+    <!-- Environment -->
+    <div class="wall"></div>
+    <div class="floor"></div>
+    
+    <!-- Ambient Smoke -->
+    <div class="smoke-container">
+      <div class="smoke-particle smoke-1"></div>
+      <div class="smoke-particle smoke-2"></div>
+      <div class="smoke-particle smoke-3"></div>
+    </div>
+
+    <!-- Restored Wall Art -->
+    <div class="raw-art">
+      <div class="raw-logo"></div>
+      <div class="raw-text">RAW</div>
+      <div class="raw-classic">CLASSIC</div>
+    </div>
+
+    <!-- OCB moved left -->
+    <div class="ocb-art">
+      <div class="ocb-box-top"></div>
+      <div class="ocb-text">OCB</div>
+      <div class="ocb-slim">SLIM</div>
+      <div class="ocb-box-line"></div>
+    </div>
+
+    <div class="art-neon">
+      <div class="text-420">420</div>
+      <div class="leaf"></div>
+    </div>
+
+    <!-- Plant Shelf -->
+    <div class="plant-shelf">
+      <div class="ganja-plant p1">
+        <div class="plant-leaf l1"></div>
+        <div class="plant-leaf l2"></div>
+        <div class="plant-leaf l3"></div>
+        <div class="plant-leaf l4"></div>
+        <div class="plant-leaf l5"></div>
+        <div class="plant-pot"></div>
+      </div>
+      <div class="ganja-plant p2">
+        <div class="plant-leaf l1"></div>
+        <div class="plant-leaf l2"></div>
+        <div class="plant-leaf l3"></div>
+        <div class="plant-leaf l4"></div>
+        <div class="plant-leaf l5"></div>
+        <div class="plant-pot"></div>
+      </div>
+    </div>
+
+    <!-- Characters -->
+    <div class="character jaxy" id="char-jaxy">
+      <div class="char-body"></div>
+      <div class="char-head">
+        <div class="char-hair"></div>
+        <div class="char-beard"></div>
+        <div class="char-eyes"></div>
+        <div class="char-smile"></div>
+      </div>
+      <div class="char-nametag">JAXY</div>
+      <div class="speech-bubble" id="bubble-jaxy"></div>
+    </div>
+
+    <div class="character muthe" id="char-muthe">
+      <div class="char-body"></div>
+      <div class="char-head">
+        <div class="snapback">
+          <div class="snapback-cap"></div>
+          <div class="snapback-brim"></div>
+          <div class="snapback-logo"></div>
+        </div>
+        <div class="char-eyes"></div>
+        <div class="char-smile"></div>
+      </div>
+      <div class="char-nametag">MUTHE</div>
+      <div class="speech-bubble" id="bubble-muthe"></div>
+    </div>
+
+    <!-- Premium Counter -->
+    <div class="counter">
+      <div class="counter-plate">KUSH & CO.</div>
+      
+      <div class="counter-welcome-area">
+        <div class="c-flag ams"></div>
+        <div class="counter-welcome">Welcome Valued Customer</div>
+        <div class="c-flag mw"></div>
+      </div>
+
+      <div class="counter-promo">
+        PAY ON DELIVERY · BUY 10 GRAMS GET 1 FREE
+      </div>
+    </div>
+
+    <!-- Premium Jars -->
+    <div class="item item-sativa" id="item-sativa">
+      <div class="display-jar"><span class="jar-label">Sat</span></div>
+    </div>
+    <div class="item item-indica" id="item-indica">
+      <div class="display-jar"><span class="jar-label">Ind</span></div>
+    </div>
+    <div class="item item-hybrid" id="item-hybrid">
+      <div class="display-jar"><span class="jar-label">Hyb</span></div>
+    </div>
+
+    <div class="menu-card" id="item-menu"></div>
+  </div>
+
+  <!-- UI Layer -->
+  <div class="hud">
+    <div class="brand">
+      KUSH & CO.
+      <small>PREMIUM CANNABIS CLUB</small>
+      <div class="malawi">AMSTERDAM × MALAWI</div>
+    </div>
+
+    <button class="cart-btn" id="open-cart">
+      BAG <span class="cart-count" id="cart-count">0</span>
+    </button>
+
+    <div class="status"><span class="dot"></span>LIVE</div>
+
+    <div id="dialogue-box">
+      <div id="speaker"></div>
+      <div id="speech"></div>
+      <div id="choices"></div>
+    </div>
+
+    <div id="menu-modal">
+      <button id="close-menu">✕</button>
+      <h2>THE MENU</h2>
+      <div class="sub">Curated by our budtenders · In-Person Delivery</div>
+      <div id="menu-items" class="menu-grid"></div>
+    </div>
+
+    <div id="cart-modal">
+      <button id="close-cart">✕</button>
+      <h2>YOUR ORDER</h2>
+      <div class="sub">Complete your details for discreet delivery</div>
+      
+      <div id="cart-items-container"></div>
+      
+      <div class="cart-total">
+        <span>TOTAL</span>
+        <span id="cart-total-price">MK 0</span>
+      </div>
+
+      <div style="margin-top: 30px; border-top: 1px solid rgba(212,175,122,0.2); padding-top: 22px;">
+        <h3 style="font-size: 13px; margin-bottom: 16px; color: #d4af7a; letter-spacing: 2px; font-family: 'Cinzel', serif;">DELIVERY DETAILS</h3>
+        
+        <div class="form-group">
+          <label>Phone Number (We will call you)</label>
+          <input type="tel" id="cust-phone" placeholder="e.g. 0888 123 456">
+        </div>
+
+        <div class="form-group">
+          <label>Precise Delivery Location</label>
+          <select id="cust-area">
+            <option value="">Select your location</option>
+            <option value="Lilongwe - Area 47">Lilongwe - Area 47</option>
+            <option value="Lilongwe - City Centre">Lilongwe - City Centre</option>
+            <option value="Lilongwe - Area 18">Lilongwe - Area 18</option>
+            <option value="Lilongwe - Area 25">Lilongwe - Area 25</option>
+            <option value="Blantyre - CBD">Blantyre - CBD</option>
+            <option value="Blantyre - Nyambadwe">Blantyre - Nyambadwe</option>
+            <option value="Blantyre - Chinyonga">Blantyre - Chinyonga</option>
+            <option value="Mzuzu">Mzuzu</option>
+            <option value="Zomba">Zomba</option>
+          </select>
+        </div>
+
+        <button class="btn-checkout" id="submit-order">Confirm Order</button>
+      </div>
+    </div>
+
+    <div id="toast">Item added to your order</div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const dialogueBox = document.getElementById('dialogue-box');
+  const speakerEl   = document.getElementById('speaker');
+  const speechEl    = document.getElementById('speech');
+  const choicesEl   = document.getElementById('choices');
+  const menuModal   = document.getElementById('menu-modal');
+  const cartModal   = document.getElementById('cart-modal');
+  const toastEl     = document.getElementById('toast');
+  const gameContainer = document.getElementById('game-container');
+  let toastTimer;
+
+  // Mobile Back Button Support Logic
+  let isModalOpen = false;
+  
+  window.addEventListener('popstate', (e) => {
+    if (isModalOpen) {
+      closeMenus();
+      closeDialog();
+      isModalOpen = false;
+      // If we are closing via back button, ensure we don't leave the page
+      // by pushing the state back if we were at the first state.
+      if (history.state && history.state.modal) {
+         history.back(); 
+      }
+    }
+  });
+
+  function pushState() {
+    if (!isModalOpen) {
+      history.pushState({ modal: true }, '');
+      isModalOpen = true;
+    }
+  }
+
+  let cart = [];
+
+  const YOUR_WHATSAPP_NUMBER = "265888123456"; 
+
+  let strains = [
+    { id: 's1', name: 'Pure Cheese', type: 'Indica-Dominant Hybrid · 22% THC', desc: 'Funky, pungent, and deeply relaxing. The classic cheese aroma.', price: 25000, priceStr: 'MK 25,000', stock: 5, budClass: 'golden' },
+    { id: 's2', name: 'Blue Diesel', type: 'Sativa-Dominant Hybrid · 23% THC', desc: 'Fuel-forward with a sweet blueberry exhale. Energizing.', price: 28000, priceStr: 'MK 28,000', stock: 6, budClass: 'diesel' },
+    { id: 's3', name: 'Northern Lights', type: 'Pure Indica · 24% THC', desc: 'The legendary classic. Sweet, spicy, and deeply tranquil.', price: 22000, priceStr: 'MK 22,000', stock: 8, budClass: 'lake' },
+    { id: 's4', name: 'Velvet Night', type: 'Indica · 24% THC', desc: 'Earthy, dark chocolate, and calm. A slow wave.', price: 28000, priceStr: 'MK 28,000', stock: 3, budClass: 'velvet' },
+    { id: 's5', name: 'Zomba Haze', type: 'Sativa · 20% THC', desc: 'Named after the Zomba Plateau. Pine, spice, clarity.', price: 22000, priceStr: 'MK 22,000', stock: 8, budClass: 'zomba' },
+    { id: 's6', name: 'Green Reine', type: 'Hybrid · 21% THC', desc: 'Sweet berries and balanced energy.', price: 24000, priceStr: 'MK 24,000', stock: 2, budClass: 'green' },
+    { id: 's7', name: 'Lake Breeze', type: 'Indica-Dominant Hybrid · 23% THC', desc: 'Cool mint and pine. Fogs the room, not the mind.', price: 26000, priceStr: 'MK 26,000', stock: 4, budClass: 'lake' },
+    { id: 's8', name: 'Citrus Crown', type: 'Sativa · 19% THC', desc: 'Lemon peel and sunshine. Light, playful, bright.', price: 20000, priceStr: 'MK 20,000', stock: 0, budClass: 'citrus' },
+    { id: 's9', name: 'Gelato', type: 'Indica-Dominant Hybrid · 25% THC', desc: 'Creamy, sweet dessert terpenes. Deeply relaxing.', price: 30000, priceStr: 'MK 30,000', stock: 4, budClass: 'gelato' },
+    { id: 's10', name: 'Purple Haze', type: 'Sativa · 21% THC', desc: 'The legendary classic. Berry, earthy, and cerebral.', price: 25000, priceStr: 'MK 25,000', stock: 7, budClass: 'purple' }
+  ];
+
+  const idleMessages = [
+    "our trusted bike guy delivers anywhere in lilongwe",
+    "enjoy",
+    "see you next time",
+    "you can only purchase up to 10 grams per session",
+    "check in regularly for stronger strains if out of stock"
+  ];
+
+  let idleStarted = false;
+
+  function triggerIdleSpeech() {
+    if (dialogueBox.classList.contains('show') || menuModal.classList.contains('show') || cartModal.classList.contains('show')) {
+      setTimeout(triggerIdleSpeech, 60000);
+      return;
+    }
+    const isJaxy = Math.random() > 0.5;
+    const bubble = document.getElementById(isJaxy ? 'bubble-jaxy' : 'bubble-muthe');
+    const msg = idleMessages[Math.floor(Math.random() * idleMessages.length)];
+    
+    bubble.textContent = msg;
+    bubble.classList.add('show');
+    setTimeout(() => bubble.classList.remove('show'), 5000);
+
+    const nextDelay = (Math.random() * 60000) + 90000;
+    setTimeout(triggerIdleSpeech, nextDelay);
+  }
+
+  // Intro Sequence
+  setTimeout(() => {
+    const bubbleJ = document.getElementById('bubble-jaxy');
+    bubbleJ.textContent = "welcome";
+    bubbleJ.classList.add('show');
+    
+    setTimeout(() => {
+      bubbleJ.classList.remove('show');
+      
+      setTimeout(() => {
+        const bubbleM = document.getElementById('bubble-muthe');
+        bubbleM.textContent = "take a look at our menu";
+        bubbleM.classList.add('show');
+        
+        setTimeout(() => {
+          bubbleM.classList.remove('show');
+          idleStarted = true;
+          setTimeout(triggerIdleSpeech, 10000); 
+        }, 4000);
+      }, 1500);
+    }, 4000);
+  }, 1000);
+
+  const menuItems = document.getElementById('menu-items');
+  
+  function renderMenu() {
+    menuItems.innerHTML = '';
+    strains.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'strain-card';
+      const isOut = s.stock <= 0;
+      const stockText = isOut ? 'SOLD OUT' : `${s.stock} IN STOCK`;
+      const stockClass = isOut ? 'stock-badge' : 'stock-badge in-stock';
+      
+      card.innerHTML = `
+        <div class="bud-image">
+          <div class="bud ${s.budClass}"></div>
+        </div>
+        <div class="strain-info">
+          <div class="type">${s.type}</div>
+          <h3>${s.name}</h3>
+          <p>${s.desc}</p>
+          <div class="strain-action">
+            <div>
+              <div class="strain-price">${s.priceStr}</div>
+              <span class="${stockClass}">${stockText}</span>
+            </div>
+            <button class="btn-buy" ${isOut ? 'disabled' : ''} onclick="addToCart('${s.id}')">
+              ${isOut ? 'Sold Out' : 'Add'}
+            </button>
+          </div>
+        </div>
+      `;
+      menuItems.appendChild(card);
+    });
+  }
+  renderMenu();
+
+  window.addToCart = (id) => {
+    const strain = strains.find(s => s.id === id);
+    if (strain && strain.stock > 0) {
+      strain.stock--;
+      cart.push(strain);
+      updateCartUI();
+      renderMenu();
+      showToast(strain.name + ' added to your bag');
+    } else {
+      showToast('Sorry, that item is sold out');
+    }
+  };
+
+  function updateCartUI() {
+    document.getElementById('cart-count').textContent = cart.length;
+    const container = document.getElementById('cart-items-container');
+    container.innerHTML = '';
+    
+    if (cart.length === 0) {
+      container.innerHTML = '<p style="color:#8a7a5c; font-size:14px; font-style:italic; padding:20px 0;">Your bag is empty.</p>';
+      document.getElementById('cart-total-price').textContent = 'MK 0';
+      return;
+    }
+
+    let total = 0;
+    cart.forEach((item, index) => {
+      total += item.price;
+      const el = document.createElement('div');
+      el.className = 'cart-item';
+      el.innerHTML = `
+        <span>${item.name} (1g)</span>
+        <div style="display:flex; gap:18px; align-items:center;">
+          <span style="color:#d4af7a; font-weight:600;">${item.priceStr}</span>
+          <button onclick="removeFromCart(${index})" style="background:none; border:none; color:#cc5588; cursor:pointer; font-size:17px;">✕</button>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+    document.getElementById('cart-total-price').textContent = 'MK ' + total.toLocaleString();
+  }
+
+  window.removeFromCart = (index) => {
+    const item = cart[index];
+    const strain = strains.find(s => s.id === item.id);
+    if (strain) strain.stock++;
+    cart.splice(index, 1);
+    updateCartUI();
+    renderMenu();
+  };
+
+  document.getElementById('submit-order').onclick = () => {
+    const phone = document.getElementById('cust-phone').value.trim();
+    const area  = document.getElementById('cust-area').value;
+
+    if (cart.length === 0) return showToast('Your bag is empty');
+    if (!phone || !area) return showToast('Please enter phone number and location');
+
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    
+    let message = `*NEW ORDER - KUSH & CO. AMSTERDAM*\n\n`;
+    message += `*Phone:* ${phone}\n`;
+    message += `*Location:* ${area}\n\n`;
+    message += `*Order Details:*\n`;
+    cart.forEach(item => {
+      message += `- 1g ${item.name} (${item.priceStr})\n`;
+    });
+    message += `\n*TOTAL: MK ${total.toLocaleString()}*`;
+    message += `\n\n_Pay on Delivery_`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${YOUR_WHATSAPP_NUMBER}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+
+    cart = [];
+    updateCartUI();
+    renderMenu();
+    document.getElementById('cust-phone').value = '';
+    document.getElementById('cust-area').value = '';
+    cartModal.classList.remove('show');
+    
+    openDialog('SYSTEM', `Thank you. Your order request has been prepared. Please send the message on WhatsApp. Our delivery rider will call you shortly at ${phone} for the ${area} drop-off.`, [
+      { text: 'Back to the shop', action: closeDialog }
+    ]);
+  };
+
+  function openDialog(speaker, text, choices) {
+    pushState();
+    speakerEl.textContent = speaker;
+    speechEl.textContent = text;
+    choicesEl.innerHTML = '';
+    choices.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="key">${i+1}</span>${c.text}`;
+      btn.onclick = c.action;
+      choicesEl.appendChild(btn);
+    });
+    dialogueBox.classList.add('show');
+    closeMenus(false);
+  }
+
+  function closeDialog() { 
+    dialogueBox.classList.remove('show'); 
+  }
+
+  function showToast(text) {
+    toastEl.textContent = text;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+  }
+
+  function openMenu() { 
+    pushState();
+    closeDialog(); 
+    cartModal.classList.remove('show'); 
+    menuModal.classList.add('show'); 
+  }
+  
+  function openCart() { 
+    pushState();
+    closeDialog(); 
+    menuModal.classList.remove('show'); 
+    cartModal.classList.add('show'); 
+  }
+  
+  function closeMenus(isBack = false) { 
+    if (!isBack && isModalOpen && !dialogueBox.classList.contains('show')) {
+        // If explicitly closing via buttons, pop the history state
+        history.back();
+    }
+    menuModal.classList.remove('show'); 
+    cartModal.classList.remove('show'); 
+  }
+
+  document.getElementById('close-menu').onclick = () => { closeMenus(); isModalOpen = false; };
+  document.getElementById('close-cart').onclick = () => { closeMenus(); isModalOpen = false; };
+  document.getElementById('open-cart').onclick = openCart;
+  document.getElementById('item-menu').onclick = openMenu;
+
+  document.getElementById('char-jaxy').onclick = () => {
+    openDialog('JAXY', "Welcome to Kush & Co. Amsterdam × Malawi. First time here? Take a look at the menu, add to your bag, and we'll deliver it straight to you.", [
+      { text: 'Show me the menu', action: () => { isModalOpen = false; openMenu(); } },
+      { text: 'What do you recommend?', action: () => {
+        openDialog('JAXY', "For most people walking in the first time? Pure Cheese. Smooth, balanced, social.", [
+          { text: "I'll take Pure Cheese", action: () => { isModalOpen = false; addToCart('s1'); closeDialog(); } },
+          { text: 'Something stronger', action: () => {
+            openDialog('JAXY', "Gelato then. A heavy indica, deeply relaxing. Hits like a slow wave.", [
+              { text: "Let's do Gelato", action: () => { isModalOpen = false; addToCart('s9'); closeDialog(); } },
+              { text: 'Maybe later', action: () => { isModalOpen = false; closeDialog(); } }
+            ]);
+          }}
+        ]);
+      }},
+      { text: 'Just looking around', action: () => { isModalOpen = false; closeDialog(); } }
+    ]);
+  };
+
+  document.getElementById('char-muthe').onclick = () => {
+    openDialog('MUTHE', "Hey — welcome in. I'm Muthe. Ready to see our Malawi-inspired selection? Once you add to your bag, I'll handle the rest.", [
+      { text: 'Yes, show me', action: () => { isModalOpen = false; openMenu(); } },
+      { text: 'Tell me about this place', action: () => {
+        openDialog('MUTHE', "We wanted the feeling of a private Dutch coffeehouse mixed with the warmth of Malawi. Every guest treated like the only person in the room — and delivered discreetly.", [
+          { text: 'I like that', action: () => { isModalOpen = false; openMenu(); } },
+          { text: 'See you around', action: () => { isModalOpen = false; closeDialog(); } }
+        ]);
+      }}
+    ]);
+  };
+
+  document.getElementById('item-sativa').onclick = () => {
+    openDialog('MUTHE', "That's our Sativa display. Uplifting and energetic. Try Northern Lights — a legendary strain.", [
+      { text: 'Add Northern Lights', action: () => { isModalOpen = false; addToCart('s3'); closeDialog(); } },
+      { text: 'See full menu', action: () => { isModalOpen = false; openMenu(); } }
+    ]);
+  };
+
+  document.getElementById('item-indica').onclick = () => {
+    openDialog('MUTHE', "The Indica display. Deep relaxation and earthy tones. Pure Cheese is a favorite here.", [
+      { text: 'Add Pure Cheese', action: () => { isModalOpen = false; addToCart('s1'); closeDialog(); } },
+      { text: 'See full menu', action: () => { isModalOpen = false; openMenu(); } }
+    ]);
+  };
+
+  document.getElementById('item-hybrid').onclick = () => {
+    openDialog('MUTHE', "Our Hybrid display. Best of both worlds — balanced, smooth, and versatile.", [
+      { text: 'See full menu', action: () => { isModalOpen = false; openMenu(); } },
+      { text: 'Just browsing', action: () => { isModalOpen = false; closeDialog(); } }
+    ]);
+  };
+});
+</script>
+</body>
+</html>
